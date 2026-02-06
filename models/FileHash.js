@@ -6,6 +6,5 @@ const fileHashSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-fileHashSchema.index({ contentHash: 1 });
 
 module.exports = mongoose.model('FileHash', fileHashSchema);
