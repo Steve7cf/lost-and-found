@@ -13,19 +13,34 @@ app.set('trust proxy', 1);
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "blob:"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-      fontSrc: ["'self'", "https://cdn.jsdelivr.net"],
-      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        "https://cdn.jsdelivr.net",
+        "https://fonts.googleapis.com"  // Added for Google Fonts
+      ],
+      fontSrc: [
+        "'self'",
+        "https://cdn.jsdelivr.net",
+        "https://fonts.gstatic.com"  // Added for Google Fonts
+      ],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",  // Added for inline scripts
+        "https://cdn.jsdelivr.net"
+      ],
       connectSrc: ["'self'"],
     },
   },
   crossOriginResourcePolicy: { policy: 'same-site' },
 }));
+
 app.use(mongoSanitize());
 
 const limiter = rateLimit({
