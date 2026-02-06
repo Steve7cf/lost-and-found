@@ -3,16 +3,16 @@ const path = require('path');
 const express = require('express');
 const connectDB = require('./config/db');
 const sessionMiddleware = require('./config/session');
-
 connectDB();
-
 const app = express();
+
+// Trust proxy - ADD THIS LINE BEFORE RATE LIMITERS
+app.set('trust proxy', 1);
 
 // Security & body
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
-
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -26,7 +26,6 @@ app.use(helmet({
   },
   crossOriginResourcePolicy: { policy: 'same-site' },
 }));
-
 app.use(mongoSanitize());
 
 const limiter = rateLimit({
@@ -52,14 +51,12 @@ app.set('views', path.join(__dirname, 'views'));
 const expressLayouts = require('express-ejs-layouts');
 app.use(expressLayouts);
 app.set('layout', 'layouts/main');
-
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
 
 // Static: public + uploaded images (with safe path)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 app.use(sessionMiddleware);
 
 // Locals for templates
