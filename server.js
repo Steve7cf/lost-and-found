@@ -18,21 +18,26 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "blob:"],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "blob:",
+        "https://res.cloudinary.com"  // Added for Cloudinary images
+      ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'",
         "https://cdn.jsdelivr.net",
-        "https://fonts.googleapis.com"  // Added for Google Fonts
+        "https://fonts.googleapis.com"
       ],
       fontSrc: [
         "'self'",
         "https://cdn.jsdelivr.net",
-        "https://fonts.gstatic.com"  // Added for Google Fonts
+        "https://fonts.gstatic.com"
       ],
       scriptSrc: [
         "'self'",
-        "'unsafe-inline'",  // Added for inline scripts
+        "'unsafe-inline'",
         "https://cdn.jsdelivr.net"
       ],
       connectSrc: ["'self'"],
@@ -69,9 +74,11 @@ app.set('layout', 'layouts/main');
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
 
-// Static: public + uploaded images (with safe path)
+// Static: public only (uploads now on Cloudinary)
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Remove this line since we're using Cloudinary now:
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(sessionMiddleware);
 
 // Locals for templates

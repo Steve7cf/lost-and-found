@@ -3,11 +3,12 @@ const router = express.Router();
 const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const { requireAuth } = require('../middleware/auth');
-const { postImages } = require('../middleware/upload');
+const { postImages, cloudinary } = require('../middleware/upload'); // Import cloudinary
 const { createPostRules, searchRules, handleValidation } = require('../validators/post');
 const { createCommentRules, handleValidation: handleCommentValidation } = require('../validators/comment');
-const { dedupeImage } = require('../utils/dedupeImage');
-const fs = require('fs').promises;
+// Remove these - no longer needed:
+// const { dedupeImage } = require('../utils/dedupeImage');
+// const fs = require('fs').promises;
 
 const PER_PAGE = 12;
 
@@ -80,21 +81,37 @@ router.get('/new', requireAuth, (req, res) => {
 
 router.post('/', requireAuth, postImages, createPostRules, handleValidation, async (req, res, next) => {
   try {
-    const images = [];
-    for (const f of req.files || []) {
-      const urlPath = await dedupeImage(f.path, f.filename);
-      images.push(urlPath);
-    }
+    console.log('Creating post, files received:', req.files?.length || 0); // Debug
+
+    // Get Cloudinary URLs from uploaded files
+    const images = (req.files || []).map(f => f.path); // f.path contains Cloudinary URL
+
+    console.log('Image URLs:', images); // Debug
+
     const post = await Post.create({
       ...req.body,
       author: req.session.userId,
       images,
       dateOccurrence: req.body.dateOccurrence || undefined,
     });
+
+    console.log('Post created successfully:', post._id); // Debug
+
     req.session.success = 'Post created successfully.';
     res.redirect(`/posts/${post._id}`);
   } catch (err) {
-    for (const f of req.files || []) await fs.unlink(f.path).catch(() => {});
+    console.error('Post creation error:', err); // Debug
+
+    // Delete uploaded images from Cloudinary on error
+    for (const f of req.files || []) {
+      try {
+        const publicId = f.filename; // Cloudinary public_id
+        await cloudinary.uploader.destroy(`lost-and-found/${publicId}`);
+      } catch (deleteErr) {
+        console.error('Failed to delete Cloudinary image:', deleteErr);
+      }
+    }
+
     req.session.error = 'Failed to create post.';
     res.redirect('/posts/new');
   }
@@ -157,17 +174,46 @@ router.post('/:id', requireAuth, postImages, createPostRules, handleValidation, 
       req.session.error = 'Post not found or you cannot edit it.';
       return res.redirect('/posts');
     }
-    const newImages = [];
-    for (const f of req.files || []) {
-      newImages.push(await dedupeImage(f.path, f.filename));
-    }
+
+    // Get new Cloudinary URLs
+    const newImages = (req.files || []).map(f => f.path);
+
+    // Combine existing and new images (max 5)
     const images = [...(post.images || []), ...newImages].slice(0, 5);
+
+    // If we had to remove images due to limit, delete them from Cloudinary
+    if ([...(post.images || []), ...newImages].length > 5) {
+      const removedImages = [...(post.images || []), ...newImages].slice(5);
+      for (const imageUrl of removedImages) {
+        try {
+          // Extract public_id from Cloudinary URL
+          const urlParts = imageUrl.split('/');
+          const publicIdWithExt = urlParts.slice(-2).join('/');
+          const publicId = publicIdWithExt.split('.')[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error('Failed to delete excess image:', err);
+        }
+      }
+    }
+
     Object.assign(post, req.body, { images, dateOccurrence: req.body.dateOccurrence || undefined, updatedAt: new Date() });
     await post.save();
     req.session.success = 'Post updated.';
     res.redirect(`/posts/${post._id}`);
   } catch (err) {
-    for (const f of req.files || []) await fs.unlink(f.path).catch(() => {});
+    console.error('Post update error:', err); // Debug
+
+    // Delete newly uploaded images from Cloudinary on error
+    for (const f of req.files || []) {
+      try {
+        const publicId = f.filename;
+        await cloudinary.uploader.destroy(`lost-and-found/${publicId}`);
+      } catch (deleteErr) {
+        console.error('Failed to delete Cloudinary image:', deleteErr);
+      }
+    }
+
     req.session.error = 'Failed to update post.';
     res.redirect(`/posts/${req.params.id}/edit`);
   }
@@ -197,6 +243,20 @@ router.post('/:id/delete', requireAuth, async (req, res, next) => {
       req.session.error = 'Post not found or you cannot delete it.';
       return res.redirect('/profile');
     }
+
+    // Delete all images from Cloudinary
+    for (const imageUrl of post.images || []) {
+      try {
+        const urlParts = imageUrl.split('/');
+        const publicIdWithExt = urlParts.slice(-2).join('/');
+        const publicId = publicIdWithExt.split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+        console.log('Deleted image from Cloudinary:', publicId);
+      } catch (err) {
+        console.error('Failed to delete image from Cloudinary:', err);
+      }
+    }
+
     await Comment.deleteMany({ post: post._id });
     await Post.findByIdAndDelete(post._id);
     req.session.success = 'Post deleted.';

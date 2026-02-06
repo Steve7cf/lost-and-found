@@ -36,7 +36,7 @@ router.get('/', async (req, res, next) => {
     ]);
     const totalPages = Math.ceil(total / PER_PAGE);
     res.render('home', {
-      title: 'KIU Lost & Found',
+      title: 'KIUT Lost & Found',
       posts,
       total,
       page,

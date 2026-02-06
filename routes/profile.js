@@ -6,7 +6,7 @@ const Rating = require('../models/Rating');
 const { requireAuth } = require('../middleware/auth');
 const { singlePhoto } = require('../middleware/upload');
 const { updateProfileRules, rateUserRules, handleValidation } = require('../validators/profile');
-const fs = require('fs').promises;
+const { cloudinary } = require('../middleware/upload'); // Import cloudinary
 const mongoose = require('mongoose');
 
 router.get('/', requireAuth, async (req, res, next) => {
@@ -53,10 +53,26 @@ router.post('/', requireAuth, singlePhoto, updateProfileRules, handleValidation,
       return res.redirect('/profile');
     }
     const { fullName, email, phone, degreeLevel, course, yearOfStudy, about } = req.body;
-    let photo = user.photo;
+
+    // Handle photo upload
     if (req.file) {
-      photo = await require('../utils/dedupeImage').dedupeImage(req.file.path, req.file.filename);
+      // Delete old photo from Cloudinary if it exists
+      if (user.photo) {
+        try {
+          // Extract public_id from Cloudinary URL
+          const urlParts = user.photo.split('/');
+          const publicIdWithExt = urlParts.slice(-2).join('/'); // e.g., "lost-and-found/uuid"
+          const publicId = publicIdWithExt.split('.')[0]; // Remove extension
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error('Failed to delete old photo from Cloudinary:', err);
+        }
+      }
+
+      // req.file.path now contains the full Cloudinary URL
+      user.photo = req.file.path;
     }
+
     user.fullName = (fullName || '').trim();
     user.email = (email || '').toLowerCase();
     user.phone = (phone || '').trim();
@@ -64,13 +80,13 @@ router.post('/', requireAuth, singlePhoto, updateProfileRules, handleValidation,
     user.course = (course || '').trim();
     user.yearOfStudy = (yearOfStudy || '').trim() || null;
     user.about = (about || '').trim() || null;
-    user.photo = photo;
+
     await user.save();
     req.session.user = user.toSafeObject();
     req.session.success = 'Profile updated.';
     res.redirect('/profile');
   } catch (err) {
-    if (req.file) await fs.unlink(req.file.path).catch(() => {});
+    // No need to delete file from local filesystem anymore - Cloudinary handles it
     req.session.error = err.code === 11000 ? 'Email already in use.' : 'Failed to update profile.';
     res.redirect('/profile/edit');
   }
