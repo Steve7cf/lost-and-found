@@ -1,0 +1,24 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow border-0 rounded-3">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 fw-bold text-center mb-4"><i class="bi bi-box-arrow-in-right me-2"></i>Log in</h1>
+          <p class="text-muted small text-center mb-4">Use your KIU registration number and password.</p>
+          <form action="/auth/login" method="post" autocomplete="on">
+            <div class="mb-3">
+              <label for="regNumber" class="form-label">Registration number</label>
+              <input type="text" id="regNumber" name="regNumber" class="form-control form-control-lg" placeholder="e.g. 20/U/12345" required autofocus autocomplete="username">
+            </div>
+            <div class="mb-4">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" id="password" name="password" class="form-control form-control-lg" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100">Log in</button>
+          </form>
+          <p class="text-center text-muted small mt-4 mb-0">Don't have an account? <a href="/auth/register">Register</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

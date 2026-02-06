@@ -1,0 +1,102 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="h4 fw-bold mb-4"><%= post ? 'Edit post' : 'New post' %> <i class="bi bi-pencil-square ms-2"></i></h1>
+      <form action="<%= post ? '/posts/' + post._id : '/posts' %>" method="post" enctype="multipart/form-data">
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+          <div class="card-body p-4">
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input type="radio" name="type" id="typeLost" value="lost" class="form-check-input" <%= (!post || post.type === 'lost') ? 'checked' : '' %> required>
+                  <label class="form-check-label" for="typeLost"><i class="bi bi-arrow-up-circle me-1"></i>Lost</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" name="type" id="typeFound" value="found" class="form-check-input" <%= post && post.type === 'found' ? 'checked' : '' %>>
+                  <label class="form-check-label" for="typeFound"><i class="bi bi-arrow-down-circle me-1"></i>Found</label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" id="title" name="title" class="form-control" placeholder="e.g. Black laptop bag" required maxlength="150" value="<%= post ? (post.title || '') : '' %>">
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+              <textarea id="description" name="description" class="form-control" rows="4" required maxlength="2000" placeholder="Describe the item, where and when…"><%= post ? (post.description || '') : '' %></textarea>
+              <small class="text-muted">Max 2000 characters.</small>
+            </div>
+            <div class="mb-3">
+              <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+              <input type="text" id="category" name="category" class="form-control" list="categoryList" required maxlength="80" placeholder="e.g. Electronics, Keys, Bag" value="<%= post ? (post.category || '') : '' %>">
+              <datalist id="categoryList">
+                <option value="Electronics"><option value="Keys"><option value="Bag"><option value="ID/Documents"><option value="Phone"><option value="Wallet"><option value="Books"><option value="Clothing"><option value="Other">
+              </datalist>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="location" class="form-label">Location (where lost/found)</label>
+                <input type="text" id="location" name="location" class="form-control" maxlength="120" placeholder="e.g. Main library, Block A" value="<%= post ? (post.location || '') : '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="dateOccurrence" class="form-label">Date (when lost/found)</label>
+                <input type="date" id="dateOccurrence" name="dateOccurrence" class="form-control" value="<%= post && post.dateOccurrence ? new Date(post.dateOccurrence).toISOString().slice(0,10) : '' %>">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contact preference</label>
+              <select name="contactPreference" class="form-select">
+                <option value="both" <%= post && post.contactPreference === 'both' ? 'selected' : '' %>>Phone & Email</option>
+                <option value="phone" <%= post && post.contactPreference === 'phone' ? 'selected' : '' %>>Phone only</option>
+                <option value="email" <%= post && post.contactPreference === 'email' ? 'selected' : '' %>>Email only</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">Photos (up to 5, optional)</label>
+              <input type="file" name="images" id="postImages" class="form-control" accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+              <div id="postImagesPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+              <p id="postImagesChosen" class="small text-success mt-2 mb-0 d-none"><i class="bi bi-check-circle-fill me-1"></i><span id="postImagesCount">0</span> photo(s) chosen</p>
+              <small class="d-block text-body-secondary">JPEG, PNG, WebP or GIF. Max 5MB each.</small>
+              <% if (post && post.images && post.images.length) { %>
+              <div class="mt-2 small text-body-secondary">Current: <%= post.images.length %> image(s). New files will be added.</div>
+              <% } %>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary"><%= post ? 'Update' : 'Create' %> post</button>
+              <a href="<%= post ? '/posts/' + post._id : '/posts' %>" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var input = document.getElementById('postImages');
+  var preview = document.getElementById('postImagesPreview');
+  var chosen = document.getElementById('postImagesChosen');
+  var countEl = document.getElementById('postImagesCount');
+  if (!input || !preview) return;
+  input.addEventListener('change', function() {
+    preview.innerHTML = '';
+    var files = this.files || [];
+    if (countEl) countEl.textContent = files.length;
+    if (chosen) chosen.classList.toggle('d-none', files.length === 0);
+    for (var i = 0; i < Math.min(files.length, 5); i++) {
+      if (!files[i].type.match(/^image\//)) continue;
+      var div = document.createElement('div');
+      div.className = 'post-image-preview-thumb';
+      var img = document.createElement('img');
+      img.alt = '';
+      img.className = 'rounded border';
+      var r = new FileReader();
+      r.onload = (function(el) { return function() { el.src = r.result; }; })(img);
+      r.readAsDataURL(files[i]);
+      div.appendChild(img);
+      preview.appendChild(div);
+    }
+  });
+})();
+</script>

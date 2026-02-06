@@ -1,0 +1,99 @@
+<div class="container">
+  <section class="hero-kiu mb-4">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <h1 class="h2 fw-bold mb-2">Lost something on campus?</h1>
+        <p class="lead mb-4 opacity-90">Report lost or found items at Kampala International University. Search and post — help others find their belongings.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="/posts?type=lost" class="btn btn-light"><i class="bi bi-arrow-up-circle me-1"></i>I lost something</a>
+          <a href="/posts?type=found" class="btn btn-outline-light"><i class="bi bi-arrow-down-circle me-1"></i>I found something</a>
+          <a href="/posts" class="btn btn-outline-light"><i class="bi bi-grid me-1"></i>Browse all</a>
+        </div>
+      </div>
+      <div class="col-lg-5 text-center d-none d-lg-block">
+        <i class="bi bi-search-heart" style="font-size: 4rem; opacity: 0.9;"></i>
+      </div>
+    </div>
+  </section>
+
+  <form action="/" method="get" class="mb-4">
+    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden border" style="border-color: var(--kiu-border) !important;">
+      <span class="input-group-text bg-white border-0"><i class="bi bi-search text-body-secondary"></i></span>
+      <input type="search" name="q" class="form-control border-0" placeholder="Search by item, category, or location…" value="<%= typeof query !== 'undefined' ? query : '' %>" aria-label="Search">
+      <% if (typeof typeFilter !== 'undefined' && typeFilter) { %><input type="hidden" name="type" value="<%= typeFilter %>"><% } %>
+      <button type="submit" class="btn btn-primary px-4">Search</button>
+    </div>
+  </form>
+
+  <% if (typeof topContributors !== 'undefined' && topContributors.length) { %>
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body py-3">
+      <h2 class="h6 fw-bold mb-2"><i class="bi bi-trophy me-1"></i>Top contributors</h2>
+      <div class="d-flex flex-wrap gap-3 align-items-center">
+        <% topContributors.forEach(function(t, i) { %>
+        <a href="/profile/<%= t.userId || t._id %>" class="d-flex align-items-center gap-2 text-decoration-none text-body">
+          <% if (t.photo) { %>
+          <img src="<%= t.photo %>" alt="" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+          <% } else { %>
+          <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center" style="width:40px;height:40px;"><i class="bi bi-person text-primary"></i></div>
+          <% } %>
+          <div>
+            <span class="fw-semibold small"><%= t.fullName %></span>
+            <span class="d-block small text-body-secondary"><i class="bi bi-star-fill text-warning small"></i> <%= t.avg ? t.avg.toFixed(1) : '-' %></span>
+          </div>
+        </a>
+        <% }); %>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h2 class="h5 mb-0 fw-600">Recent open listings</h2>
+    <a href="/posts" class="btn btn-sm btn-outline-primary">View all <i class="bi bi-arrow-right"></i></a>
+  </div>
+
+  <% if (posts && posts.length) { %>
+  <div class="row g-3">
+    <% posts.forEach(function(p) { %>
+    <div class="col-sm-6 col-lg-4 col-xl-3">
+      <a href="/posts/<%= p._id %>" class="text-decoration-none">
+        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden post-card">
+          <div class="position-relative bg-light" style="height: 160px;">
+            <% if (p.images && p.images[0]) { %>
+            <img src="<%= p.images[0] %>" class="card-img-top object-fit-cover w-100 h-100" alt="">
+            <% } else { %>
+            <div class="d-flex align-items-center justify-content-center h-100 text-muted"><i class="bi bi-image display-4"></i></div>
+            <% } %>
+            <span class="position-absolute top-0 start-0 badge bg-<%= p.type === 'lost' ? 'warning' : 'success' %> text-dark m-2"><%= p.type %></span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title h6 text-truncate"><%= p.title %></h3>
+            <p class="card-text small text-muted mb-0"><%= p.category %><% if (p.location) { %> · <%= p.location %><% } %></p>
+          </div>
+        </div>
+      </a>
+    </div>
+    <% }); %>
+  </div>
+  <% if (totalPages > 1) { %>
+  <nav class="mt-4" aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      <% if (page > 1) { %>
+      <li class="page-item"><a class="page-link" href="/?page=<%= page - 1 %><%= query ? '&q=' + encodeURIComponent(query) : '' %><%= typeFilter ? '&type=' + typeFilter : '' %>">Previous</a></li>
+      <% } %>
+      <li class="page-item disabled"><span class="page-link">Page <%= page %> of <%= totalPages %></span></li>
+      <% if (page < totalPages) { %>
+      <li class="page-item"><a class="page-link" href="/?page=<%= page + 1 %><%= query ? '&q=' + encodeURIComponent(query) : '' %><%= typeFilter ? '&type=' + typeFilter : '' %>">Next</a></li>
+      <% } %>
+    </ul>
+  </nav>
+  <% } %>
+  <% } else { %>
+  <div class="text-center py-5 text-body-secondary">
+    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+    <p class="mt-2 mb-0">No open listings yet. Be the first to post.</p>
+    <% if (user) { %><a href="/posts/new" class="btn btn-primary mt-2">New post</a><% } %>
+  </div>
+  <% } %>
+</div>

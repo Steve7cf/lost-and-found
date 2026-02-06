@@ -1,0 +1,61 @@
+<% if (typeof success !== 'undefined' && success) { %>
+<div class="container px-3 px-md-0 mb-3 flash-wrap">
+  <div class="alert-toast alert-toast-success" role="alert" data-dismiss-ms="3000">
+    <span class="alert-toast-icon"><i class="bi bi-check-circle-fill"></i></span>
+    <span class="alert-toast-text"><%= success %></span>
+    <button type="button" class="alert-toast-close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+    <div class="alert-toast-progress" aria-hidden="true"></div>
+  </div>
+</div>
+<% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+<div class="container px-3 px-md-0 mb-3 flash-wrap">
+  <div class="alert-toast alert-toast-error" role="alert" data-dismiss-ms="3000">
+    <span class="alert-toast-icon"><i class="bi bi-exclamation-circle-fill"></i></span>
+    <span class="alert-toast-text"><%= error %></span>
+    <button type="button" class="alert-toast-close" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+    <div class="alert-toast-progress" aria-hidden="true"></div>
+  </div>
+</div>
+<% } %>
+<script>
+(function() {
+  function initFlash() {
+    var wraps = document.querySelectorAll('.flash-wrap');
+    var ms = 3000;
+    wraps.forEach(function(wrap) {
+      var toast = wrap.querySelector('[data-dismiss-ms]');
+      if (!toast) return;
+      var dismissMs = parseInt(toast.getAttribute('data-dismiss-ms'), 10) || ms;
+      var progressEl = toast.querySelector('.alert-toast-progress');
+      var autoCloseTimer;
+
+      function dismiss(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        toast.classList.add('alert-toast-dismissed');
+        clearTimeout(autoCloseTimer);
+        if (progressEl) progressEl.classList.add('alert-toast-progress-done');
+        setTimeout(function() {
+          if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+        }, 300);
+      }
+
+      autoCloseTimer = setTimeout(dismiss, dismissMs);
+
+      if (progressEl) {
+        progressEl.style.animationDuration = (dismissMs / 1000) + 's';
+      }
+
+      var btn = toast.querySelector('.alert-toast-close');
+      if (btn) {
+        btn.addEventListener('click', function(ev) { dismiss(ev); });
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFlash);
+  } else {
+    initFlash();
+  }
+})();
+</script>

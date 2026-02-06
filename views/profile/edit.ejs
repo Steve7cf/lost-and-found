@@ -1,0 +1,85 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="h4 fw-bold mb-4">Edit profile</h1>
+      <form action="/profile" method="post" enctype="multipart/form-data">
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden mb-4">
+          <div class="card-body p-4">
+            <div class="text-center mb-4">
+              <label class="d-block mb-2">Profile photo</label>
+              <% if (user.photo) { %>
+              <img id="photoPreview" src="<%= user.photo %>" alt="" class="rounded-circle border object-fit-cover mb-2" width="100" height="100" style="object-fit: cover;">
+              <% } else { %>
+              <img id="photoPreview" src="" alt="" class="rounded-circle border object-fit-cover d-none mb-2" width="100" height="100" style="object-fit: cover;">
+              <span id="photoPlaceholder" class="d-inline-flex align-items-center justify-content-center rounded-circle border bg-light text-body-secondary mb-2" style="width:100px;height:100px;"><i class="bi bi-camera fs-2"></i></span>
+              <% } %>
+              <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp,image/gif" class="form-control form-control-sm w-auto mx-auto" style="max-width: 200px;">
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="fullName" class="form-label">Full name <span class="text-danger">*</span></label>
+                <input type="text" id="fullName" name="fullName" class="form-control" required value="<%= user.fullName %>">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Registration number</label>
+                <input type="text" class="form-control" value="<%= user.regNumber %>" disabled>
+                <small class="text-body-secondary">Cannot be changed.</small>
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" id="email" name="email" class="form-control" required value="<%= user.email %>">
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                <input type="tel" id="phone" name="phone" class="form-control" required value="<%= user.phone %>">
+              </div>
+              <div class="col-md-6">
+                <label for="degreeLevel" class="form-label">Degree level</label>
+                <select id="degreeLevel" name="degreeLevel" class="form-select">
+                  <option value="">Select</option>
+                  <% degreeLevels.forEach(function(d) { %>
+                  <option value="<%= d.value %>" <%= user.degreeLevel === d.value ? 'selected' : '' %>><%= d.label %></option>
+                  <% }); %>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="yearOfStudy" class="form-label">Year of study</label>
+                <input type="text" id="yearOfStudy" name="yearOfStudy" class="form-control" value="<%= user.yearOfStudy || '' %>">
+              </div>
+              <div class="col-12">
+                <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                <input type="text" id="course" name="course" class="form-control" required value="<%= user.course %>">
+              </div>
+              <div class="col-12">
+                <label for="about" class="form-label">About (optional)</label>
+                <textarea id="about" name="about" class="form-control" rows="3" maxlength="500" placeholder="A short bio or what you're looking for..."><%= user.about || '' %></textarea>
+                <small class="text-body-secondary">Max 500 characters.</small>
+              </div>
+            </div>
+            <div class="mt-4 d-flex gap-2">
+              <button type="submit" class="btn btn-primary">Save changes</button>
+              <a href="/profile" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var photo = document.getElementById('photo');
+  var preview = document.getElementById('photoPreview');
+  var placeholder = document.getElementById('photoPlaceholder');
+  if (photo && preview) {
+    photo.addEventListener('change', function() {
+      var f = this.files && this.files[0];
+      if (f && f.type.indexOf('image/') === 0) {
+        var r = new FileReader();
+        r.onload = function() { preview.src = r.result; preview.classList.remove('d-none'); if (placeholder) placeholder.classList.add('d-none'); };
+        r.readAsDataURL(f);
+      }
+    });
+  }
+})();
+</script>

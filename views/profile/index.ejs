@@ -1,0 +1,71 @@
+<div class="container py-4">
+  <h1 class="h4 fw-bold mb-4"><i class="bi bi-person me-2"></i>My Profile</h1>
+
+  <div class="row">
+    <div class="col-lg-4 mb-4">
+      <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="card-body text-center p-4">
+          <% if (user.photo) { %>
+          <img src="<%= user.photo %>" alt="" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
+          <% } else { %>
+          <div class="rounded-circle bg-primary bg-opacity-25 d-inline-flex align-items-center justify-content-center mb-3" style="width:120px;height:120px;"><i class="bi bi-person display-1 text-primary"></i></div>
+          <% } %>
+          <h2 class="h5 fw-bold mb-1"><%= user.fullName %></h2>
+          <p class="text-body-secondary small mb-1"><%= user.regNumber %></p>
+          <% if (user.degreeLevel) { %><p class="text-body-secondary small mb-0"><%= degreeLabels[user.degreeLevel] || user.degreeLevel %></p><% } %>
+          <p class="text-body-secondary small mb-0"><%= user.course %><% if (user.yearOfStudy) { %> · <%= user.yearOfStudy %><% } %></p>
+          <% if (typeof user.profileViews === 'number') { %>
+          <p class="small text-body-secondary mt-2 mb-0"><i class="bi bi-eye me-1"></i><%= user.profileViews %> profile view<%= user.profileViews !== 1 ? 's' : '' %></p>
+          <% } %>
+          <% if (typeof avgRating === 'number' && !isNaN(avgRating)) { %>
+          <p class="small mb-0 mt-1"><i class="bi bi-star-fill text-warning"></i> <%= avgRating %> (<%= ratingCount || 0 %> rating<%= (ratingCount || 0) !== 1 ? 's' : '' %>)</p>
+          <% } %>
+          <% if (user.about) { %>
+          <div class="text-start mt-3 pt-3 border-top"><p class="small text-body-secondary mb-0"><%= user.about %></p></div>
+          <% } %>
+          <a href="/profile/edit" class="btn btn-primary btn-sm mt-3">Edit profile</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">My posts</h2>
+        <a href="/posts/new" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>New post</a>
+      </div>
+      <% if (posts && posts.length) { %>
+      <div class="list-group list-group-flush border rounded-3 shadow-sm">
+        <% posts.forEach(function(p) { %>
+        <div class="list-group-item d-flex gap-3 align-items-center">
+          <a href="/posts/<%= p._id %>" class="d-flex gap-3 align-items-center flex-grow-1 text-decoration-none text-body min-width-0">
+            <% if (p.images && p.images[0]) { %>
+            <img src="<%= p.images[0] %>" alt="" width="64" height="64" class="rounded object-fit-cover flex-shrink-0">
+            <% } else { %>
+            <div class="rounded bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width:64px;height:64px;"><i class="bi bi-image text-muted"></i></div>
+            <% } %>
+            <div class="min-width-0">
+              <div class="fw-semibold text-truncate"><%= p.title %></div>
+              <div class="small text-body-secondary"><%= p.type %> · <%= p.category %> · <span class="badge bg-<%= p.status === 'open' ? 'success' : p.status === 'resolved' ? 'info' : 'secondary' %>"><%= p.status %></span></div>
+            </div>
+            <span class="small text-body-secondary flex-shrink-0"><%= new Date(p.createdAt).toLocaleDateString() %></span>
+          </a>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <a href="/posts/<%= p._id %>/edit" class="btn btn-outline-primary btn-sm" title="Edit"> <i class="bi bi-pencil"></i></a>
+            <form action="/posts/<%= p._id %>/delete" method="post" class="d-inline" onsubmit="return confirm('Delete this post?');">
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete"><i class="bi bi-trash"></i></button>
+            </form>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% } else { %>
+      <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body text-center py-5 text-body-secondary">
+          <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+          <p class="mt-2 mb-0">You haven't posted anything yet.</p>
+          <a href="/posts/new" class="btn btn-primary mt-2">Create your first post</a>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>

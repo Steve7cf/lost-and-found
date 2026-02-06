@@ -1,0 +1,105 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+        <div class="card-body p-4 p-md-5">
+          <h1 class="h4 fw-bold text-center mb-2">Create account</h1>
+          <p class="text-body-secondary small text-center mb-4">Use your KIU details. Your photo helps others recognize you.</p>
+          <form action="/auth/register" method="post" enctype="multipart/form-data" autocomplete="on">
+            <div class="row g-3">
+              <div class="col-12 text-center">
+                <label class="d-block mb-2">Profile photo (optional)</label>
+                <div class="d-inline-block position-relative photo-upload-area" id="photoUploadArea">
+                  <img id="photoPreview" src="" alt="" class="rounded-circle border object-fit-cover d-none" width="120" height="120" style="object-fit: cover;">
+                  <span id="photoPlaceholder" class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle border bg-light text-body-secondary" style="width:120px;height:120px;">
+                    <i class="bi bi-camera fs-2 mb-1"></i>
+                    <span class="small">Click to choose</span>
+                  </span>
+                  <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp,image/gif" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor:pointer;">
+                </div>
+                <p id="photoChosenLabel" class="small text-success mt-2 mb-0 d-none"><i class="bi bi-check-circle-fill me-1"></i>Photo chosen</p>
+                <small class="d-block text-body-secondary mt-1">JPEG, PNG, WebP or GIF. Max 5MB.</small>
+              </div>
+              <div class="col-md-6">
+                <label for="fullName" class="form-label">Full name <span class="text-danger">*</span></label>
+                <input type="text" id="fullName" name="fullName" class="form-control" required maxlength="100" autocomplete="name" value="<%= (registerForm && registerForm.fullName) || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="regNumber" class="form-label">Registration number <span class="text-danger">*</span></label>
+                <input type="text" id="regNumber" name="regNumber" class="form-control" placeholder="e.g. 20/U/12345" required maxlength="30" autocomplete="off" value="<%= (registerForm && registerForm.regNumber) || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" id="email" name="email" class="form-control" required autocomplete="email" value="<%= (registerForm && registerForm.email) || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone number <span class="text-danger">*</span></label>
+                <input type="tel" id="phone" name="phone" class="form-control" required maxlength="20" autocomplete="tel" value="<%= (registerForm && registerForm.phone) || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="degreeLevel" class="form-label">Degree level <span class="text-danger">*</span></label>
+                <select id="degreeLevel" name="degreeLevel" class="form-select" required>
+                  <option value="">Select level</option>
+                  <% if (typeof degreeLevels !== 'undefined' && degreeLevels.length) { degreeLevels.forEach(function(d) { %>
+                  <option value="<%= d.value %>" <%= (registerForm && registerForm.degreeLevel === d.value) ? 'selected' : '' %>><%= d.label %></option>
+                  <% }); } %>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="yearOfStudy" class="form-label">Year of study <span class="text-danger">*</span></label>
+                <input type="text" id="yearOfStudy" name="yearOfStudy" class="form-control" placeholder="e.g. 1, Year 2, Final Year" required maxlength="30" value="<%= (registerForm && registerForm.yearOfStudy) || '' %>">
+              </div>
+              <div class="col-12">
+                <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                <input type="text" id="course" name="course" class="form-control" placeholder="Enter your course name" required maxlength="150" value="<%= (registerForm && registerForm.course) || '' %>">
+              </div>
+              <div class="col-md-6">
+                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                <input type="password" id="password" name="password" class="form-control" required minlength="8" autocomplete="new-password">
+                <small class="text-body-secondary">At least 8 characters.</small>
+              </div>
+              <div class="col-md-6">
+                <label for="passwordConfirm" class="form-label">Confirm password <span class="text-danger">*</span></label>
+                <input type="password" id="passwordConfirm" name="passwordConfirm" class="form-control" required minlength="8" autocomplete="new-password">
+              </div>
+            </div>
+            <div class="mt-4">
+              <button type="submit" class="btn btn-primary btn-lg w-100">Create account</button>
+            </div>
+          </form>
+          <p class="text-center text-body-secondary small mt-4 mb-0">Already have an account? <a href="/auth/login">Log in</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var photo = document.getElementById('photo');
+  var preview = document.getElementById('photoPreview');
+  var placeholder = document.getElementById('photoPlaceholder');
+  var chosenLabel = document.getElementById('photoChosenLabel');
+  var area = document.getElementById('photoUploadArea');
+  if (photo && preview && placeholder) {
+    photo.addEventListener('change', function() {
+      var f = this.files && this.files[0];
+      if (f && f.type.indexOf('image/') === 0) {
+        var r = new FileReader();
+        r.onload = function() {
+          preview.src = r.result;
+          preview.classList.remove('d-none');
+          placeholder.classList.add('d-none');
+          if (chosenLabel) chosenLabel.classList.remove('d-none');
+          if (area) area.classList.add('photo-chosen');
+        };
+        r.readAsDataURL(f);
+      } else {
+        preview.classList.add('d-none');
+        placeholder.classList.remove('d-none');
+        if (chosenLabel) chosenLabel.classList.add('d-none');
+        if (area) area.classList.remove('photo-chosen');
+      }
+    });
+  }
+})();
+</script>
